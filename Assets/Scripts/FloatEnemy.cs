@@ -26,6 +26,8 @@ public class FloatEnemy : MonoBehaviour
     public float shotDelay;
     public int directionOfGaze = 0;
     public int fieldOfView = 0;
+    public float jumpRange1 = 0;
+    public float jumpRange2 = 0;
 
 
     [Space]
@@ -42,6 +44,8 @@ public class FloatEnemy : MonoBehaviour
         target = GameObject.Find("Player");
         targetPos = target.transform;
 
+        StartCoroutine("floatPlatform");
+
     }
 
     void Update()
@@ -54,16 +58,11 @@ public class FloatEnemy : MonoBehaviour
 
         manage();
 
-    }
 
+        //Debug.Log($"Current Coroutine: {currentCoroutine}");
 
-    void FixedUpdate()
-    {
 
     }
-
-
-
 
 
     void findPlayer_flip()
@@ -84,17 +83,16 @@ public class FloatEnemy : MonoBehaviour
     {
         if (isFindPlayer && currentCoroutine == null)
         {
-            currentCoroutine = StartCoroutine("pursuitPlayer");
+            //currentCoroutine = StartCoroutine("pursuitPlayer");
 
         }
         else if (!isFindPlayer && currentCoroutine == null)
         {
-            currentCoroutine = StartCoroutine("wander");
+            //currentCoroutine = StartCoroutine("wander");
 
         }
 
         if (!isFalling && isCliff) directionOfGaze *= -1;
-
         rigid.velocity = new Vector2(directionOfGaze * speed, rigid.velocity.y);
 
     }
@@ -102,26 +100,23 @@ public class FloatEnemy : MonoBehaviour
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     IEnumerator floatPlatform()
     {
+        int count = 0;
+        //while (true)
+        //{
+        //    Debug.Log("count: ");
+        //    yield return new WaitForSeconds(jumpRange1);
+        //    rigid.AddForce(new Vector2(0, 5), ForceMode2D.Impulse);
+
+        //    yield return new WaitForSeconds(jumpRange2);
+        //    rigid.AddForce(new Vector2(0, 2), ForceMode2D.Impulse);
+
+        //    count++;
+
+        //}
+
+        Debug.Log("sex");
 
 
         yield return null;
@@ -134,53 +129,27 @@ public class FloatEnemy : MonoBehaviour
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     IEnumerator pursuitPlayer()
     {
         while(true)
         {
-            if (isFalling) continue;
+            if (isFalling)
+            {
+                Debug.Log("pursuitPlayer에서 지금 떨어지는중 반복 나감");
+                continue;
+            }
             directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;
             
-            if(isFindPlayer)
+
+            StartCoroutine("shot");
+            yield return new WaitForSeconds(shotDelay);
+
+
+            if (!isFindPlayer)
             {
-                StartCoroutine("shot");
-                yield return new WaitForSeconds(shotDelay);
-
-            }
-            else
-                yield return new WaitForSeconds(1f);
-
-
-            if(!isFindPlayer)
-            {
+                Debug.Log("pursuitPlayer ending");
                 currentCoroutine = null;
-                yield break;
+                break;
 
             }
         }
@@ -188,7 +157,6 @@ public class FloatEnemy : MonoBehaviour
 
     IEnumerator shot()
     {
-
         Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
         GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
@@ -205,7 +173,11 @@ public class FloatEnemy : MonoBehaviour
     {
         while(true)
         {
-            if (isFalling) continue;
+            if (isFalling)
+            {
+                Debug.Log("wander에서 지금 떨어지는중 반복 나감");
+                continue;
+            }
 
             directionOfGaze = 0;
             yield return new WaitForSeconds(Random.Range(0, 5) / 5f);
@@ -220,13 +192,12 @@ public class FloatEnemy : MonoBehaviour
 
             if(isFindPlayer)
             {
+                Debug.Log("wander ending");
                 currentCoroutine = null;
-                yield break;
+                break;
 
             }
-
         }
-
     }
 
 
@@ -240,7 +211,6 @@ public class FloatEnemy : MonoBehaviour
         }
         
     }
-
 
 
 

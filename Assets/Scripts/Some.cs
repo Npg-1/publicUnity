@@ -5,43 +5,53 @@ using UnityEngine;
 
 public class Some : MonoBehaviour
 {
-    void OnCollisionEnter2D(Collision2D collision)
+    private void Awake()
     {
-        Debug.Log("OnCollisionEnter2D() »£√‚µ ");
-        
+        Debug.Log("Awake()");
+        StartCoroutine("WhileTrue");
+
+        Invoke("SomeWhile", 5);
+
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+    void SomeWhile()
     {
-        Debug.Log("OnCollisionStay2D() »£√‚µ ");
-        
+        while (true)
+        {
+            Debug.Log("SomeWhile()");
+        }
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    IEnumerator WhileTrue()
     {
-        Debug.Log("OnCollisionExit2D() »£√‚µ ");
-        
+        Debug.Log("Five");
+        yield return new WaitForSeconds(1f);
+
+        Debug.Log("Four");
+        yield return new WaitForSeconds(1f);
+
+        Debug.Log("Three");
+        yield return new WaitForSeconds(1f);
+
+        Debug.Log("Two");
+        yield return new WaitForSeconds(1f);
+
+        Debug.Log("One");
+        yield return new WaitForSeconds(1f);
+
+        while (true)
+        {
+            Debug.Log("WhileTrue()");
+            yield return null;
+
+        }
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    private void Update()
     {
-        Debug.Log("OnTriggerEnter2D() »£√‚µ ");
+        Debug.Log("Update()");
         
     }
-
-    void OnTriggerStay2D(Collider2D collision)
-    {
-        Debug.Log("OnTriggerStay2D() »£√‚µ ");
-        
-    }
-
-    void OnTriggerExit2D(Collider2D collision)
-    {
-        Debug.Log("OnTriggerExit2D() »£√‚µ ");
-        
-    }
-
-
 
 
 }
