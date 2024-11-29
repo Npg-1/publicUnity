@@ -828,7 +828,7 @@ GameObject:
   - component: {fileID: 968309796}
   - component: {fileID: 968309798}
   m_Layer: 0
-  m_Name: FloatEnemy
+  m_Name: FlytEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -895,7 +895,7 @@ Transform:
   m_GameObject: {fileID: 968309793}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.93, y: 4.82, z: 0}
+  m_LocalPosition: {x: -6.93, y: 4.82, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -930,7 +930,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -961,7 +961,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -982,7 +982,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 968309793}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a1f3c038962a1a4f9d3b6be4db4c7d0, type: 3}
+  m_Script: {fileID: 11500000, guid: 0f47df7fea67be447b8ec5f3655a0195, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   stopPosition: 0
@@ -995,13 +995,12 @@ MonoBehaviour:
   speed: 2
   bulletSpeed: 7.5
   shotDelay: 2
-  directionOfGaze: 0
+  pursuitMoveDelay: 1.5
+  wanderMoveDelay: 1.5
+  directionOfGaze: {x: 0, y: 0}
   fieldOfView: 7
-  jumpRange1: 1
-  jumpRange2: 1.25
+  attackOfView: 5
   isFindPlayer: 0
-  isCliff: 0
-  isFalling: 0
 --- !u!1 &1075223212
 GameObject:
   m_ObjectHideFlags: 0
@@ -1992,7 +1991,7 @@ Transform:
   m_GameObject: {fileID: 1779302512}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.41, y: -3.04, z: 0}
+  m_LocalPosition: {x: 3.57, y: -4.35, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

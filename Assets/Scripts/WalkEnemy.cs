@@ -13,10 +13,14 @@ public class WalkEnemy : MonoBehaviour
     [Header("Manage")]
     public bool stopPosition;
 
+
+
     [Space]
     public GameObject target;
     public GameObject bullet;
-    public LayerMask groundLayer;   
+    public LayerMask groundLayer;
+
+
 
     [Space]
     [Header("Stats")]
@@ -28,12 +32,14 @@ public class WalkEnemy : MonoBehaviour
     public int fieldOfView = 0;
 
 
+
     [Space]
     [Header("State")]
 
     public bool isFindPlayer = false;
     public bool isCliff;
     public bool isFalling;
+
 
 
     void Awake()
@@ -58,14 +64,6 @@ public class WalkEnemy : MonoBehaviour
     }
 
 
-    void FixedUpdate()
-    {
-
-    }
-
-
-
-
 
     void findPlayer_flip()
     {
@@ -76,10 +74,7 @@ public class WalkEnemy : MonoBehaviour
             spriteRenderer.flipX = (directionOfGaze > 0);
 
         }
-
     }
-
-
 
     void move()
     {
@@ -104,17 +99,16 @@ public class WalkEnemy : MonoBehaviour
     {
         while(true)
         {
-            if (isFalling) continue;
+            if (isFalling)
+            {
+                yield return null;
+                continue;
+            }
+
             directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;
             
-            if(isFindPlayer)
-            {
-                StartCoroutine("shot");
-                yield return new WaitForSeconds(shotDelay);
-
-            }
-            else
-                yield return new WaitForSeconds(1f);
+            StartCoroutine("shot");
+            yield return new WaitForSeconds(shotDelay);
 
 
             if(!isFindPlayer)
@@ -128,7 +122,6 @@ public class WalkEnemy : MonoBehaviour
 
     IEnumerator shot()
     {
-
         Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
         GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
@@ -145,7 +138,11 @@ public class WalkEnemy : MonoBehaviour
     {
         while(true)
         {
-            if (isFalling) continue;
+            if (isFalling)
+            {
+                yield return null;
+                continue;
+            }
 
             directionOfGaze = 0;
             yield return new WaitForSeconds(Random.Range(0, 5) / 5f);
@@ -164,9 +161,7 @@ public class WalkEnemy : MonoBehaviour
                 yield break;
 
             }
-
         }
-
     }
 
 
