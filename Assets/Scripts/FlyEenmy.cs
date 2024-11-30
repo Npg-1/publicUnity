@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class FlyEenmy : MonoBehaviour
 {
@@ -28,6 +29,7 @@ public class FlyEenmy : MonoBehaviour
     public float wanderMoveDelay;
 
     public Vector2 directionOfGaze = new Vector2();
+    public Vector2 myFront = new Vector2();
 
     public int fieldOfView = 0;
     public int attackOfView = 0;
@@ -38,6 +40,8 @@ public class FlyEenmy : MonoBehaviour
 
     public bool isFindPlayer = false;
     public bool isAbleToAttack = false;
+    public bool isTouchOutsideWall = false;
+
 
 
     void Awake()
@@ -60,6 +64,8 @@ public class FlyEenmy : MonoBehaviour
 
         manage();
 
+        rayWork();
+
     }
 
 
@@ -76,6 +82,12 @@ public class FlyEenmy : MonoBehaviour
 
     void move()
     {
+        if (isTouchOutsideWall)
+        {
+            directionOfGaze =
+                new Vector2(directionOfGaze.x * (-1), directionOfGaze.y * (-1));
+        }
+
         if (isFindPlayer && currentCoroutine == null)
         {
             currentCoroutine = StartCoroutine("pursuitPlayer");
@@ -99,14 +111,26 @@ public class FlyEenmy : MonoBehaviour
     {
         while (true)
         {
-            Debug.Log("pursuitPlayer()");
+            if(isTouchOutsideWall)
+            {
+                yield return null;
+                continue;
+
+            }
+
             directionOfGaze = new Vector2(targetPos.position.x - transform.position.x
                 , targetPos.position.y - transform.position.y).normalized;
-                //transform.position.x > targetPos.position.x ? -1 : 1;
 
-            //StartCoroutine("shot");
+            Vector2 tempVec = directionOfGaze;
+            if(isAbleToAttack)
+            {
+                directionOfGaze = new Vector2(0, 0);
+                yield return new WaitForSeconds(shotDelay);
+                shot();
+
+            }
+            directionOfGaze = tempVec;
             yield return new WaitForSeconds(pursuitMoveDelay);
-
 
             if (!isFindPlayer)
             {
@@ -117,29 +141,33 @@ public class FlyEenmy : MonoBehaviour
         }
     }
 
-    IEnumerator shot()
+    void shot()
     {
-        //Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
-        //GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
-        //Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
-        //bulletRigid.velocity =
-        //    new Vector2(
-        //        (targetPos.position - transform.position).normalized.x * bulletSpeed,
-        //        (targetPos.position - transform.position).normalized.y * bulletSpeed);
+        Vector2 tempVec = directionOfGaze;
 
-        yield return null;
+        Vector2 bulletPosision = new Vector2(transform.position.x, transform.position.y);
+        GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
+        Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
+        bulletRigid.velocity =
+            new Vector2(
+                (targetPos.position - transform.position).normalized.x * bulletSpeed,
+                (targetPos.position - transform.position).normalized.y * bulletSpeed);
 
     }
 
     IEnumerator wander()
     {
-        Debug.Log("wander()");
         while (true)
         {
-            directionOfGaze = new Vector2(Random.Range(-10, 11), Random.Range(-10, 11)).normalized;
+            if(isTouchOutsideWall)
+            {
+                yield return null;
+                continue;
 
+            }
+
+            directionOfGaze = new Vector2(Random.Range(-30, 31), Random.Range(-30, 31)).normalized;
             yield return new WaitForSeconds(wanderMoveDelay);
-
 
             if (isFindPlayer)
             {
@@ -147,9 +175,7 @@ public class FlyEenmy : MonoBehaviour
                 yield break;
 
             }
-
         }
-
     }
 
 
@@ -164,11 +190,42 @@ public class FlyEenmy : MonoBehaviour
 
     }
 
-
-
-
-    void OnDrawGizmos() 
+    void rayWork()
     {
+        Vector2 myPosition = transform.position;
+
+        if(directionOfGaze.x < 0)
+        {
+            if (directionOfGaze.y < 0) myFront = new Vector2(-1, -1);
+            else myFront = new Vector2(-1, 1);
+        }
+        else
+        {
+            if (directionOfGaze.y < 0) myFront = new Vector2(1, -1);
+            else myFront = new Vector2(1, 1);
+        }
+
+        Collider2D myAround = Physics2D.OverlapBox(
+            myPosition + myFront, new Vector2(1, 1), 0, groundLayer);
+
+
+        if (myAround != null && myAround.tag == "OutsideWall")
+            isTouchOutsideWall = true;
+        else 
+            isTouchOutsideWall = false;
+
+
+    }
+
+
+
+    void OnDrawGizmos()
+    {
+        if (rigid == null) return;
+        Vector2 myPosition = transform.position;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(myPosition + myFront, new Vector2(1,1));
 
     }
 

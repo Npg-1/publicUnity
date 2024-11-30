@@ -29,6 +29,7 @@ public class Player : MonoBehaviour
 
         // 플레이어의 위치는 현재 위치 + moveVecX에서 speed와 걷고있는지에 따라서 결정됨
         transform.position = (new Vector2(transform.position.x, transform.position.y)) + moveVecY * speed * Time.deltaTime;
+        transform.position = new Vector3(transform.position.x, transform.position.y, -0.01f);
 
 
         if(hp < 0)
