@@ -14,7 +14,7 @@ public class NewBehaviourScript : MonoBehaviour
 
     IEnumerator goToDie()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.5f);
         Destroy(gameObject);
 
     }
