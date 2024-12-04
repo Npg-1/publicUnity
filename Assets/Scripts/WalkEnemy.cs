@@ -8,6 +8,7 @@ public class WalkEnemy : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Coroutine currentCoroutine;
     private Transform targetPos;
+    private Animator anim;
 
 
     [Header("Manage")]
@@ -28,8 +29,13 @@ public class WalkEnemy : MonoBehaviour
     public float speed;
     public float bulletSpeed;
     public float shotDelay;
+    public float shotAnimTime;
+
     public int directionOfGaze = 0;
     public int fieldOfView = 0;
+
+    public bool isWalk = false;
+    public bool isAttack = false;
 
 
 
@@ -46,6 +52,8 @@ public class WalkEnemy : MonoBehaviour
     {
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
+
         target = GameObject.Find("Player");
         targetPos = target.transform;
 
@@ -54,11 +62,8 @@ public class WalkEnemy : MonoBehaviour
     void Update()
     {
         findPlayer_flip();
-
         move();
-
         rayWork();
-
         manage();
 
     }
@@ -71,7 +76,16 @@ public class WalkEnemy : MonoBehaviour
 
         if(!isFalling)
         {
-            spriteRenderer.flipX = (directionOfGaze > 0);
+            //spriteRenderer.flipX = (directionOfGaze < 0);
+            if (directionOfGaze < 0) spriteRenderer.flipX = true;
+            else if (directionOfGaze > 0) spriteRenderer.flipX = false;
+            else
+            {
+                // 내가 플레이어 왼쪽
+                if (transform.position.x - targetPos.position.x < 0) spriteRenderer.flipX = false;
+                else spriteRenderer.flipX = true;
+
+            }
 
         }
     }
@@ -106,6 +120,9 @@ public class WalkEnemy : MonoBehaviour
             }
 
             directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;
+
+            isWalk = true;
+            anim.SetBool("isWalk", true);
             
             StartCoroutine("shot");
             yield return new WaitForSeconds(shotDelay);
@@ -122,15 +139,34 @@ public class WalkEnemy : MonoBehaviour
 
     IEnumerator shot()
     {
+        isWalk = false;
+        isAttack = true;
+        anim.SetBool("isWalk", false);
+        anim.SetBool("isAttack", true);
+
+        int tempDirection = directionOfGaze;
+        directionOfGaze = 0;
+
+        yield return new WaitForSeconds(shotAnimTime);
+
+        Vector3 diff = transform.position - targetPos.position;
+        float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
         Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
-        GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
+        GameObject instantBullet = Instantiate(bullet, bulletPosision, Quaternion.Euler(0, 0, angle + 180));
+
+
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
         bulletRigid.velocity =
             new Vector2(
                 (targetPos.position - transform.position).normalized.x * bulletSpeed,
                 (targetPos.position - transform.position).normalized.y * bulletSpeed);
 
-        yield return null;
+        isWalk = true;
+        isAttack = false;
+        anim.SetBool("isWalk", true);
+        anim.SetBool("isAttack", false);
+
+        directionOfGaze = tempDirection;
 
     }
 
@@ -145,13 +181,16 @@ public class WalkEnemy : MonoBehaviour
             }
 
             directionOfGaze = 0;
+            isWalk = false;
+            anim.SetBool("isWalk", false);
             yield return new WaitForSeconds(Random.Range(0, 5) / 5f);
 
 
             if (Random.Range(0, 2) == 0) directionOfGaze = -1;
             else directionOfGaze = 1;
 
-
+            isWalk = true;
+            anim.SetBool("isWalk", true);
             yield return new WaitForSeconds(3f);
 
 
