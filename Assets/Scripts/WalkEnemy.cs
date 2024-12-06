@@ -59,14 +59,19 @@ public class WalkEnemy : MonoBehaviour
 
     }
 
+
     void Update()
     {
-        findPlayer_flip();
-        move();
-        rayWork();
-        manage();
+        findPlayer_flip();  
+        move();             
+        rayWork();          
+        manage();          
+        
+        // 연속적으로 실해하는 부분이 Update()
 
     }
+
+
 
 
 
@@ -90,6 +95,9 @@ public class WalkEnemy : MonoBehaviour
         }
     }
 
+
+
+
     void move()
     {
         if(isFindPlayer && currentCoroutine == null)
@@ -104,6 +112,7 @@ public class WalkEnemy : MonoBehaviour
         }
 
         if (!isFalling && isCliff) directionOfGaze *= -1;
+
 
         rigid.velocity = new Vector2(directionOfGaze * speed, rigid.velocity.y);
 
@@ -205,8 +214,7 @@ public class WalkEnemy : MonoBehaviour
 
 
     // 임시로 잠시 붙여둔 거임! 삭제해도 됨!!
-    void OnCollisionEnter2D(Collision2D collision)
-    {
+    void OnCollisionEnter2D(Collision2D collision) {
         if(collision.gameObject.tag == "Player")
         {
             Destroy(gameObject);

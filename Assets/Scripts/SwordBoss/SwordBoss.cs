@@ -19,6 +19,7 @@ public class SwordBoss : MonoBehaviour
     public GameObject slashObject;
     public GameObject swordObject;
 
+
     [Space]
     public LayerMask layers;
     public Transform[] inPlaces;
@@ -364,6 +365,7 @@ public class SwordBoss : MonoBehaviour
         if (hp < 100) { StartCoroutine("doRush", 3); }
         else if (hp < 200) { StartCoroutine("doRush", 2); }
         else if (hp >= 200) { StartCoroutine("doRush", 1); }
+
     }
 
 

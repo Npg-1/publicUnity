@@ -1,50 +1,61 @@
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Some : MonoBehaviour
 {
-    public GameObject target;
-    public Transform targetPos;
+    public Transform player;   // 플레이어의 Transform
+    public Transform gun;      // 총의 Transform
+    public Transform unit;     // A 유닛의 Transform
 
-    void Awake()
-    {
+    public float radius = 1.5f;      // 원형 궤적 반지름
+    public float rotationSpeed = 1f; // 총의 원형 이동 속도
 
-        Invoke("shoot", 1);
-
-    }
-
-    void shoot()
-    {
-        Vector3 u = targetPos.position;
-        Vector3 me = transform.position;
-
-        //Quaternion quaternion = Quaternion.Euler(u - me);   // X
-        Vector3 A = me, B = u;
-
-        //Vector3 diff = me - u;
-        //Quaternion quaternion = Quaternion.Euler(0, 0, Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg);   // X
-
-        //Quaternion quaternion = Quaternion.Euler(0, 0, Vector3.Angle(me, u) * Mathf.Rad2Deg);   // X
-
-        //GameObject bullet = Instantiate(target, transform.position, quaternion);  // X
-
-
-
-
-        Vector3 direction = B - A;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-
-        Instantiate(target, A, Quaternion.Euler(0, 0, angle - 90));
-
-    }
-
+    private float angle = 0f; // 현재 각도
 
     void Update()
     {
-        
+        Vector2 diff = unit.position - player.position;
+        float angle = Mathf.Atan2(diff.x, diff.y);
+
+        float x = unit.position.x + (-1) * (Mathf.Sin(angle) * radius);
+        float y = unit.position.y + (-1) * (Mathf.Cos(angle) * radius);
+
+        gun.position = new Vector2(x, y);
+
+        // 2. 플레이어를 향해 총 회전
+        //Vector2 direction = (Vector2)(player.position - gun.position);
+        //float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        //gun.rotation = Quaternion.Euler(0, 0, targetAngle);
+    }
+
+
+
+    void OnDrawGizmos()
+    {
+        Gizmos.DrawCube(gun.position, new Vector3(0.25f, 0.25f));
+
+
     }
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
