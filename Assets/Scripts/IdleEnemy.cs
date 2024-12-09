@@ -15,9 +15,9 @@ public class IdleEnemy : MonoBehaviour
     public int directionOfGaze = 0;
     public int fieldOfView = 0;
 
-    public float bulletSpeed;
     public float shotDelay;
 
+    [Header("Stats")]
     public bool isFindPlayer = false;
 
 
@@ -30,14 +30,11 @@ public class IdleEnemy : MonoBehaviour
     }
 
 
-    void FixedUpdate()
+    void Update()
     {
         isFindPlayer = Vector2.Distance(targetPos.position, transform.position) < fieldOfView;
-
         directionOfGaze = targetPos.position.x < transform.position.x ? -1 : 1;
-
         spriteRenderer.flipX = (directionOfGaze > 0);
-
         attack();
 
     }
@@ -55,8 +52,12 @@ public class IdleEnemy : MonoBehaviour
 
     IEnumerator shot()
     {
-        Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze/1.5f, transform.position.y);
+        Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
         GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
+        EnemyBullet bulletScript = instantBullet.GetComponent<EnemyBullet>();
+        bulletScript.setType(bulletScript.Type);
+
+
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
         bulletRigid.velocity = 
             new Vector2(
@@ -68,7 +69,8 @@ public class IdleEnemy : MonoBehaviour
 
     }
 
-    // 임시로 잠시 붙여둔 거임! 삭제해도 됨!!
+
+
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "Player")

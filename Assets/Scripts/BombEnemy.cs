@@ -2,17 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WalkEnemy : MonoBehaviour
+public class BombEnemy : MonoBehaviour
 {
     private Rigidbody2D rigid;
     private SpriteRenderer spriteRenderer;
     private Coroutine currentCoroutine;
     private Transform targetPos;
-    private Animator anim;
 
 
     [Header("Manage")]
     public bool stopPosition;
+
+
 
     [Space]
     public GameObject target;
@@ -23,26 +24,33 @@ public class WalkEnemy : MonoBehaviour
 
     [Space]
     [Header("Stats")]
+
     public float hp;
     public float speed;
-    public float bulletSpeed;
-    public float shotDelay;
-    public float shotAnimTime;
+    public float wanderSpeed;
+    public float pursuitSpeed;
+
+    public float boomTimer;
 
     public int directionOfGaze = 0;
     public int fieldOfView = 0;
 
-    public bool isWalk = false;
-    public bool isAttack = false;
 
 
 
     [Space]
     [Header("State")]
 
-    public bool isFindPlayer = false;
+    public bool isFindPlayer;
     public bool isCliff;
     public bool isFalling;
+
+    public bool isInBoomDistance;
+
+    public bool isWalk;
+    public bool isAttack;
+
+    public bool isPursuit;
 
 
 
@@ -50,7 +58,6 @@ public class WalkEnemy : MonoBehaviour
     {
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
 
         target = GameObject.Find("Player");
         targetPos = target.transform;
@@ -60,11 +67,11 @@ public class WalkEnemy : MonoBehaviour
 
     void Update()
     {
-        findPlayer_flip();  
-        move();             
-        rayWork();          
-        manage();          
-        
+        findPlayer_flip();
+        move();
+        rayWork();
+        manage();
+
         // 연속적으로 실해하는 부분이 Update()
 
     }
@@ -77,11 +84,10 @@ public class WalkEnemy : MonoBehaviour
     {
         isFindPlayer = Vector2.Distance(targetPos.position, transform.position) < fieldOfView;
 
-        if(!isFalling)
+        if (!isFalling)
         {
-            //spriteRenderer.flipX = (directionOfGaze < 0);
-            if (directionOfGaze < 0) spriteRenderer.flipX = true;
-            else if (directionOfGaze > 0) spriteRenderer.flipX = false;
+            if (directionOfGaze > 0) spriteRenderer.flipX = true;
+            else if (directionOfGaze < 0) spriteRenderer.flipX = false;
             else
             {
                 // 내가 플레이어 왼쪽
@@ -98,27 +104,25 @@ public class WalkEnemy : MonoBehaviour
 
     void move()
     {
-        if(isFindPlayer && currentCoroutine == null)
+        if (isFindPlayer && currentCoroutine == null)
         {
             currentCoroutine = StartCoroutine("pursuitPlayer");
 
         }
-        else if(!isFindPlayer && currentCoroutine == null)
+        else if (!isFindPlayer && currentCoroutine == null)
         {
             currentCoroutine = StartCoroutine("wander");
 
         }
 
-        if (!isFalling && isCliff) directionOfGaze *= -1;
-
-
+        if (!isPursuit && !isFalling && isCliff) directionOfGaze *= -1;
         rigid.velocity = new Vector2(directionOfGaze * speed, rigid.velocity.y);
 
     }
 
     IEnumerator pursuitPlayer()
     {
-        while(true)
+        while (true)
         {
             if (isFalling)
             {
@@ -126,16 +130,20 @@ public class WalkEnemy : MonoBehaviour
                 continue;
             }
 
-            directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;
+            speed = pursuitSpeed;
+            isPursuit = true;
 
-            isWalk = true;
-            anim.SetBool("isWalk", true);
-            
-            StartCoroutine("shot");
-            yield return new WaitForSeconds(shotDelay);
+            directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;     
+            yield return null;
+
+            if (isInBoomDistance)
+            {
+                StartCoroutine(boom());
+                
+            }
 
 
-            if(!isFindPlayer)
+            if (!isFindPlayer)
             {
                 currentCoroutine = null;
                 yield break;
@@ -144,42 +152,17 @@ public class WalkEnemy : MonoBehaviour
         }
     }
 
-    IEnumerator shot()
-    {
-        isWalk = false;
-        isAttack = true;
-        anim.SetBool("isWalk", false);
-        anim.SetBool("isAttack", true);
-
-        int tempDirection = directionOfGaze;
-        directionOfGaze = 0;
-
-        yield return new WaitForSeconds(shotAnimTime);
-
-        Vector3 diff = transform.position - targetPos.position;
-        float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
-        Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
-        GameObject instantBullet = Instantiate(bullet, bulletPosision, Quaternion.Euler(0, 0, angle + 180));
-
-
-        Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
-        bulletRigid.velocity =
-            new Vector2(
-                (targetPos.position - transform.position).normalized.x * bulletSpeed,
-                (targetPos.position - transform.position).normalized.y * bulletSpeed);
-
-        isWalk = true;
-        isAttack = false;
-        anim.SetBool("isWalk", true);
-        anim.SetBool("isAttack", false);
-
-        directionOfGaze = tempDirection;
+    IEnumerator boom()
+    { 
+        yield return new WaitForSeconds(boomTimer); 
+        Destroy(gameObject);
 
     }
 
+
     IEnumerator wander()
     {
-        while(true)
+        while (true)
         {
             if (isFalling)
             {
@@ -188,20 +171,19 @@ public class WalkEnemy : MonoBehaviour
             }
 
             directionOfGaze = 0;
-            isWalk = false;
-            anim.SetBool("isWalk", false);
             yield return new WaitForSeconds(Random.Range(0, 5) / 5f);
 
+            speed = wanderSpeed;
+            isPursuit = false;
 
             if (Random.Range(0, 2) == 0) directionOfGaze = -1;
             else directionOfGaze = 1;
 
             isWalk = true;
-            anim.SetBool("isWalk", true);
             yield return new WaitForSeconds(3f);
 
 
-            if(isFindPlayer)
+            if (isFindPlayer)
             {
                 currentCoroutine = null;
                 yield break;
@@ -212,13 +194,14 @@ public class WalkEnemy : MonoBehaviour
 
 
     // 임시로 잠시 붙여둔 거임! 삭제해도 됨!!
-    void OnCollisionEnter2D(Collision2D collision) {
-        if(collision.gameObject.tag == "Player")
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Player")
         {
             Destroy(gameObject);
 
         }
-        
+
     }
 
 
@@ -229,18 +212,29 @@ public class WalkEnemy : MonoBehaviour
         Vector2 myPosition = transform.position;
 
         Collider2D frontBottom = Physics2D.OverlapBox(
-            myPosition + new Vector2(directionOfGaze/2f, -0.5f),
+            myPosition + new Vector2(directionOfGaze / 2f, -0.5f),
             new Vector2(0, 1), 0, groundLayer);
 
         Collider2D myBottom = Physics2D.OverlapBox(
             myPosition + new Vector2(0, -1.0f),
             new Vector2(0, 1), 0, groundLayer);
 
+        Collider2D boomCollider = Physics2D.OverlapBox(myPosition,
+            new Vector2(6, 3), 0, groundLayer);
+
+
         if (frontBottom == null) isCliff = true;
         else isCliff = false;
 
         if (myBottom == null) isFalling = true;
         else isFalling = false;
+
+
+        if(boomCollider != null && boomCollider.tag == "Player") isInBoomDistance = true;
+        else isInBoomDistance = false;
+
+
+
 
     }
 
@@ -253,11 +247,16 @@ public class WalkEnemy : MonoBehaviour
         Vector2 myPosition = transform.position;
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(myPosition + new Vector2(directionOfGaze/2f, -0.5f),
+        Gizmos.DrawWireCube(myPosition + new Vector2(directionOfGaze / 2f, -0.5f),
             new Vector2(0, 1));
 
         Gizmos.DrawWireCube(myPosition + new Vector2(0, -1.0f),
             new Vector2(0, 1));
+
+        Gizmos.DrawWireCube(myPosition, new Vector2(6, 3));
+
+    //    Collider2D boomCollider = Physics2D.OverlapBox(myPosition,
+    //new Vector2(6, 3), 0, groundLayer);
 
     }
 
