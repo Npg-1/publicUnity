@@ -18,26 +18,25 @@ public class EnemyBullet : MonoBehaviour
         
     }
 
-    public void setType(int type)
+    public void setType(Type type)
     {
         switch (type)
         {
-            case 0:
+            case Type.Walk:
                 this.type = Type.Walk;
                 bulletSpeed = bulletSpeeds[0];
 
                 break;
-            case 1:
+            case Type.Idle:
                 this.type = Type.Idle;
                 bulletSpeed = bulletSpeeds[1];
 
                 break;
-            case 2:
+            case Type.Fly:
                 this.type = Type.Fly;
                 bulletSpeed = bulletSpeeds[2];
 
                 break;
-
         }
     }
 

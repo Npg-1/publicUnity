@@ -63,7 +63,6 @@ public class GunBoss : MonoBehaviour
         inPlace = bossPositions[1];
 
         StartCoroutine(floatfloat());
-        StartCoroutine(tempCoroutine());
 
     }
 
@@ -126,7 +125,7 @@ public class GunBoss : MonoBehaviour
 
     void Update()
     {
-        //think();
+        think();
         settingPointGunsPosNRotation();
         manage();
 

@@ -23,24 +23,23 @@ public class FlyEenmy : MonoBehaviour
     [Header("Stats")]
     public float hp;
     public float speed;
-    public float bulletSpeed;
-    public float shotDelay;
-    public float pursuitMoveDelay;
-    public float wanderMoveDelay;
+    public float shotDelay;                 // 공격 딜레이
+    public float pursuitMoveDelay;          // 추적 딜레이
+    public float wanderMoveDelay;           // 방황 딜레이
 
-    public Vector2 directionOfGaze = new Vector2();
-    public Vector2 myFront = new Vector2();
+    public Vector2 directionOfGaze;         // 현재 바라보고 있는 방향
+    public Vector2 myFront;                 // 내 진행방향에 벽이 있는지 감지하는 범위
 
-    public int fieldOfView = 0;
-    public int attackOfView = 0;
+    public int fieldOfView = 0;             // 시야범위
+    public int attackOfView = 0;            // 공격범위
 
 
     [Space]
     [Header("State")]
 
-    public bool isFindPlayer = false;
-    public bool isAbleToAttack = false;
-    public bool isTouchOutsideWall = false;
+    public bool isFindPlayer = false;       // 플레이어를 찾았는지
+    public bool isAbleToAttack = false;     // 플레이어가 공격 범위에 들어왔는지
+    public bool isTouchOutsideWall = false; // 외곽벽에 닿였는지
 
 
 
@@ -58,7 +57,7 @@ public class FlyEenmy : MonoBehaviour
 
     void Update()
     {
-        boolCheck();
+        otherTasks();
 
         move();
 
@@ -69,13 +68,19 @@ public class FlyEenmy : MonoBehaviour
     }
 
 
-    void boolCheck()
+    void otherTasks()
     {
-        isFindPlayer = Vector2.Distance(targetPos.position, transform.position) < fieldOfView;
         isAbleToAttack = Vector2.Distance(targetPos.position, transform.position) < attackOfView;
+        isFindPlayer = Vector2.Distance(targetPos.position, transform.position) < fieldOfView;
 
-        spriteRenderer.flipX = (directionOfGaze.x > 0);
+        if (directionOfGaze.x > 0) spriteRenderer.flipX = true;
+        else if (directionOfGaze.x < 0) spriteRenderer.flipX = false;
+        else
+        {
+            if (transform.position.x - targetPos.position.x > 0) spriteRenderer.flipX = false;
+            else spriteRenderer.flipX = true;
 
+        }
     }
 
 
@@ -84,8 +89,7 @@ public class FlyEenmy : MonoBehaviour
     {
         if (isTouchOutsideWall)
         {
-            directionOfGaze =
-                new Vector2(directionOfGaze.x * (-1), directionOfGaze.y * (-1));
+            directionOfGaze *= (-1);
         }
 
         if (isFindPlayer && currentCoroutine == null)
@@ -99,13 +103,33 @@ public class FlyEenmy : MonoBehaviour
 
         }
 
-        // 플레이어를 찾기 전: 그냥 돌아다니기
-        // 플레이어 찾음 하지만 공격벜위는 아님: 플레이어가 공격범위로 들어올 때 까지 접근
-        // 플레이어가 공격범위에 들어옴: 접근하다가 공격 이전에 잠시 정지했다가 공격함
-
         rigid.velocity = new Vector2(directionOfGaze.x * speed, directionOfGaze.y * speed);
 
     }
+
+    IEnumerator wander()
+    {
+        while (true)
+        {
+            if(isTouchOutsideWall)
+            {
+                yield return null;
+                continue;
+
+            }
+
+            directionOfGaze = new Vector2(Random.Range(-30, 31), Random.Range(-30, 31)).normalized;
+            yield return new WaitForSeconds(wanderMoveDelay);
+
+            if (isFindPlayer)
+            {
+                currentCoroutine = null;
+                yield break;
+
+            }
+        }
+    }
+
 
     IEnumerator pursuitPlayer()
     {
@@ -147,36 +171,18 @@ public class FlyEenmy : MonoBehaviour
 
         Vector2 bulletPosision = new Vector2(transform.position.x, transform.position.y);
         GameObject instantBullet = Instantiate(bullet, bulletPosision, new Quaternion());
+
+        EnemyBullet bulletScript = instantBullet.GetComponent<EnemyBullet>();
+        bulletScript.setType(EnemyBullet.Type.Fly);
+        float bulletSpeed = bulletScript.bulletSpeed;
+
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
         bulletRigid.velocity =
             new Vector2(
                 (targetPos.position - transform.position).normalized.x * bulletSpeed,
                 (targetPos.position - transform.position).normalized.y * bulletSpeed);
-
     }
 
-    IEnumerator wander()
-    {
-        while (true)
-        {
-            if(isTouchOutsideWall)
-            {
-                yield return null;
-                continue;
-
-            }
-
-            directionOfGaze = new Vector2(Random.Range(-30, 31), Random.Range(-30, 31)).normalized;
-            yield return new WaitForSeconds(wanderMoveDelay);
-
-            if (isFindPlayer)
-            {
-                currentCoroutine = null;
-                yield break;
-
-            }
-        }
-    }
 
 
     // 임시로 잠시 붙여둔 거임! 삭제해도 됨!!

@@ -25,16 +25,17 @@ public class WalkEnemy : MonoBehaviour
     [Header("Stats")]
     public float hp;
     public float speed;
-    public float bulletSpeed;
-    public float shotDelay;
-    public float shotAnimTime;
+    public float shotDelay;             // 공격 딜레이
 
-    public int directionOfGaze = 0;
-    public int fieldOfView = 0;
+    public int directionOfGaze = 0;     // 현재 바라보고 있는 방향
+    public int fieldOfView = 0;         // 시야 범위
 
-    public bool isWalk = false;
+
+    [Space]
+    [Header("Animation")]
+    public float shotAnimTime;          // 공격 애니메이션 재생시간
+    public bool isWalk = false;         
     public bool isAttack = false;
-
 
 
     [Space]
@@ -60,12 +61,10 @@ public class WalkEnemy : MonoBehaviour
 
     void Update()
     {
-        findPlayer_flip();  
+        otherTasks();  
         move();             
         rayWork();          
         manage();          
-        
-        // 연속적으로 실해하는 부분이 Update()
 
     }
 
@@ -73,18 +72,16 @@ public class WalkEnemy : MonoBehaviour
 
 
 
-    void findPlayer_flip()
+    void otherTasks()
     {
         isFindPlayer = Vector2.Distance(targetPos.position, transform.position) < fieldOfView;
 
         if(!isFalling)
         {
-            //spriteRenderer.flipX = (directionOfGaze < 0);
             if (directionOfGaze < 0) spriteRenderer.flipX = true;
             else if (directionOfGaze > 0) spriteRenderer.flipX = false;
             else
             {
-                // 내가 플레이어 왼쪽
                 if (transform.position.x - targetPos.position.x < 0) spriteRenderer.flipX = false;
                 else spriteRenderer.flipX = true;
 
@@ -160,8 +157,11 @@ public class WalkEnemy : MonoBehaviour
         float angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
         Vector2 bulletPosision = new Vector2(transform.position.x + directionOfGaze / 1.5f, transform.position.y);
         GameObject instantBullet = Instantiate(bullet, bulletPosision, Quaternion.Euler(0, 0, angle + 180));
+        EnemyBullet bulletScript = instantBullet.GetComponent<EnemyBullet>();
 
-
+        bulletScript.setType(EnemyBullet.Type.Walk);
+        float bulletSpeed = bulletScript.bulletSpeed;
+        
         Rigidbody2D bulletRigid = instantBullet.GetComponent<Rigidbody2D>();
         bulletRigid.velocity =
             new Vector2(

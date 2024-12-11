@@ -53,7 +53,6 @@ public class SwordBoss : MonoBehaviour
     [Space]
     [Header("State")]
     public bool isReturnInPlace = false;
-    public bool isInInPlace = false;
     public bool isRush = false;
     public bool isSlash = false;
     public bool isSummonSword = false;
@@ -96,7 +95,6 @@ public class SwordBoss : MonoBehaviour
 
     void Update()
     {
-        rayWork();
         manage();
         think();
 
@@ -425,14 +423,18 @@ public class SwordBoss : MonoBehaviour
 
     IEnumerator returnInPlace()
     {
+        Debug.Log("돌아가버렷!");
         isReturnInPlace = true;
         if (Vector3.Distance(transform.position, inPlaces[0].position) 
             < Vector3.Distance(transform.position, inPlaces[1].position)) 
             curInPlace = inPlaces[0];
         else curInPlace = inPlaces[1];
 
-        while (!isInInPlace)
+        while (true)
         {
+            if (Vector2.Distance(transform.position, curInPlace.position) < 0.1f) 
+                break;
+
             Vector2 direction = new Vector2(curInPlace.position.x - transform.position.x
                 , curInPlace.position.y - transform.position.y).normalized;
 
@@ -443,30 +445,10 @@ public class SwordBoss : MonoBehaviour
 
         isReturnInPlace = false;
         rigid.velocity = new Vector2(0, 0);
+        //Debug.Log("돌아와버렸어!");
 
     }
 
-
-    void rayWork()
-    {
-        Vector2 myPosition = transform.position;
-        Collider2D center = Physics2D.OverlapBox(
-            myPosition, new Vector2(0.5f, 0.5f) , 0, layers);
-
-        if (center != null)
-        {
-            if (center.tag == "BossInPlace")
-            {
-                isInInPlace = true;
-
-            }
-        }
-        else
-        {
-            isInInPlace = false;
-
-        }
-    }
 
 
 
