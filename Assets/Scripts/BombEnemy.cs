@@ -13,11 +13,9 @@ public class BombEnemy : MonoBehaviour
     [Header("Manage")]
     public bool stopPosition;
 
-
-
     [Space]
     public GameObject target;
-    public GameObject bullet;
+    public GameObject bombObject;
     public LayerMask groundLayer;
 
 
@@ -27,10 +25,6 @@ public class BombEnemy : MonoBehaviour
 
     public float hp;
     public float speed;
-    public float wanderSpeed;
-    public float pursuitSpeed;
-
-    public float boomTimer;
 
     public int directionOfGaze = 0;
     public int fieldOfView = 0;
@@ -40,18 +34,9 @@ public class BombEnemy : MonoBehaviour
 
     [Space]
     [Header("State")]
-
     public bool isFindPlayer;
     public bool isCliff;
     public bool isFalling;
-
-    public bool isInBoomDistance;
-
-    public bool isWalk;
-    public bool isAttack;
-
-    public bool isPursuit;
-
 
 
     void Awake()
@@ -72,8 +57,6 @@ public class BombEnemy : MonoBehaviour
         rayWork();
         manage();
 
-        // 연속적으로 실해하는 부분이 Update()
-
     }
 
 
@@ -90,7 +73,6 @@ public class BombEnemy : MonoBehaviour
             else if (directionOfGaze < 0) spriteRenderer.flipX = false;
             else
             {
-                // 내가 플레이어 왼쪽
                 if (transform.position.x - targetPos.position.x < 0) spriteRenderer.flipX = false;
                 else spriteRenderer.flipX = true;
 
@@ -115,7 +97,7 @@ public class BombEnemy : MonoBehaviour
 
         }
 
-        if (!isPursuit && !isFalling && isCliff) directionOfGaze *= -1;
+        if (!isFalling && isCliff) directionOfGaze *= -1;
         rigid.velocity = new Vector2(directionOfGaze * speed, rigid.velocity.y);
 
     }
@@ -130,17 +112,10 @@ public class BombEnemy : MonoBehaviour
                 continue;
             }
 
-            speed = pursuitSpeed;
-            isPursuit = true;
+            directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;
+            yield return new WaitForSeconds(1f);
 
-            directionOfGaze = transform.position.x > targetPos.position.x ? -1 : 1;     
-            yield return null;
-
-            if (isInBoomDistance)
-            {
-                StartCoroutine(boom());
-                
-            }
+            StartCoroutine(throwBomb());
 
 
             if (!isFindPlayer)
@@ -152,10 +127,21 @@ public class BombEnemy : MonoBehaviour
         }
     }
 
-    IEnumerator boom()
-    { 
-        yield return new WaitForSeconds(boomTimer); 
-        Destroy(gameObject);
+    IEnumerator throwBomb()
+    {
+        GameObject instantBomb = Instantiate(bombObject, transform.position, Quaternion.identity);
+        EnemyBullet bombScript = instantBomb.GetComponent<EnemyBullet>();
+        bombScript.setType(EnemyBullet.Type.Bomb);
+
+        float bombThrowSpeed = bombScript.bulletSpeed;
+
+        Rigidbody2D bombRigid = instantBomb.GetComponent<Rigidbody2D>();
+
+        float middleX = Mathf.Abs(transform.position.x - targetPos.position.x) / 2;
+        bombRigid.AddForce(new Vector2(directionOfGaze * middleX, 2) * bombThrowSpeed, ForceMode2D.Impulse);
+        
+
+        yield return null; 
 
     }
 
@@ -173,13 +159,9 @@ public class BombEnemy : MonoBehaviour
             directionOfGaze = 0;
             yield return new WaitForSeconds(Random.Range(0, 5) / 5f);
 
-            speed = wanderSpeed;
-            isPursuit = false;
-
             if (Random.Range(0, 2) == 0) directionOfGaze = -1;
             else directionOfGaze = 1;
 
-            isWalk = true;
             yield return new WaitForSeconds(3f);
 
 
@@ -219,22 +201,11 @@ public class BombEnemy : MonoBehaviour
             myPosition + new Vector2(0, -1.0f),
             new Vector2(0, 1), 0, groundLayer);
 
-        Collider2D boomCollider = Physics2D.OverlapBox(myPosition,
-            new Vector2(6, 3), 0, groundLayer);
-
-
         if (frontBottom == null) isCliff = true;
         else isCliff = false;
 
         if (myBottom == null) isFalling = true;
         else isFalling = false;
-
-
-        if(boomCollider != null && boomCollider.tag == "Player") isInBoomDistance = true;
-        else isInBoomDistance = false;
-
-
-
 
     }
 
@@ -252,12 +223,6 @@ public class BombEnemy : MonoBehaviour
 
         Gizmos.DrawWireCube(myPosition + new Vector2(0, -1.0f),
             new Vector2(0, 1));
-
-        Gizmos.DrawWireCube(myPosition, new Vector2(6, 3));
-
-    //    Collider2D boomCollider = Physics2D.OverlapBox(myPosition,
-    //new Vector2(6, 3), 0, groundLayer);
-
     }
 
 

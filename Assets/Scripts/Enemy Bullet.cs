@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    public enum Type { Walk, Idle, Fly };
+    public enum Type { Walk, Idle, Fly, Bomb };
     private Type type;
+
     public float[] bulletSpeeds;
-
-
     public int damage;
     public float bulletSpeed;
 
@@ -37,30 +36,98 @@ public class EnemyBullet : MonoBehaviour
                 bulletSpeed = bulletSpeeds[2];
 
                 break;
+            case Type.Bomb:
+                this.type = Type.Bomb;
+                bulletSpeed = bulletSpeeds[3];
+
+                break;
         }
     }
 
     IEnumerator goToDie()
     {
         yield return new WaitForSeconds(6f);
-        Destroy(gameObject);
+
+        if (type == Type.Bomb) StartCoroutine(boom());
+        else Destroy(gameObject);
+
+    }
+
+    IEnumerator boom()
+    {
+        yield return null;
+
+        //Destroy(gameObject);
 
     }
 
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.gameObject.tag == "Player")
+        if(type == Type.Bomb)
+            StartCoroutine(boom());
+        else
         {
-            Destroy(gameObject);
+            if(collision.gameObject.tag == "Player")
+            {
+                Destroy(gameObject);
 
-        }
-        else if(collision.gameObject.tag == "OutsideWall")
-        {
-            Destroy(gameObject);
+            }
+            else if(collision.gameObject.tag == "OutsideWall")
+            {
+                Destroy(gameObject);
 
+            }
         }
-        
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
